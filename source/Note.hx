@@ -45,6 +45,7 @@ class Note extends FlxSprite
 
 	public var modAngle:Float = 0; // The angle set by modcharts
 	public var localAngle:Float = 0; // The angle to be edited inside Note.hx
+	public var initialPos:Float = 0;
 
 	public var dataColor:Array<String> = ['purple', 'blue', 'green', 'red'];
 	public var quantityColor:Array<Int> = [RED_NOTE, 2, BLUE_NOTE, 2, PURP_NOTE, 2, BLUE_NOTE, 2];
@@ -58,7 +59,7 @@ class Note extends FlxSprite
 
 	public var children:Array<Note> = [];
 
-	public function new(strumTime:Float, noteData:Int, ?prevNote:Note, ?sustainNote:Bool = false, ?inCharter:Bool = false, ?death:Bool = false)
+	public function new(strumTime:Float, noteData:Int, ?prevNote:Note, ?sustainNote:Bool = false, ?inCharter:Bool = false, ?death:Bool = false, ?initialPos:Float = 0)
 	{
 		super();
 
@@ -66,6 +67,7 @@ class Note extends FlxSprite
 			prevNote = this;
 
 		this.prevNote = prevNote;
+		this.initialPos = initialPos;
 		isSustainNote = sustainNote;
 
 		x += 50;
@@ -261,7 +263,7 @@ class Note extends FlxSprite
 				if(FlxG.save.data.scrollSpeed != 1)
 					prevNote.scale.y *= Conductor.stepCrochet / 100 * 1.5 * FlxG.save.data.scrollSpeed;
 				else
-					prevNote.scale.y *= Conductor.stepCrochet / 100 * 1.5 * PlayState.SONG.speed;
+					prevNote.scale.y *= Conductor.stepCrochet / 100 * 1.5 * (PlayState.getSVFromTime(strumTime)*(1/.45));
 				prevNote.updateHitbox();
 				// prevNote.setGraphicSize();
 			}

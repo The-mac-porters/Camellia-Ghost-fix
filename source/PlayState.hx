@@ -193,6 +193,10 @@ class PlayState extends MusicBeatState
 	var bottomBoppers:FlxSprite;
 	var santa:FlxSprite;
 
+	public var dontSync:Bool=false;
+	public var currentTrackPos:Float = 0;
+	public var currentVisPos:Float = 0;
+
 	var fc:Bool = true;
 
 	var bgGirls:BackgroundGirls;
@@ -213,6 +217,8 @@ class PlayState extends MusicBeatState
 	public static var daPixelZoom:Float = 6;
 
 	public static var theFunne:Bool = true;
+
+	var velocityMarkers:Array<Float>=[];
 
 	var funneEffect:FlxSprite;
 	var inCutscene:Bool = false;
@@ -375,6 +381,8 @@ class PlayState extends MusicBeatState
 
 		if (SONG == null)
 			SONG = Song.loadFromJson('tutorial', 'tutorial');
+
+		mapVelocityChanges();
 
 		Conductor.mapBPMChanges(SONG);
 		Conductor.changeBPM(SONG.bpm);
@@ -1960,7 +1968,7 @@ class PlayState extends MusicBeatState
 
 				//trace(daDeath);
 
-				var swagNote:Note = new Note(daStrumTime, daNoteData, oldNote, null, null, daDeath);
+				var swagNote:Note = new Note(daStrumTime, daNoteData, oldNote, null, null, daDeath, getPosFromTime(daStrumTime));
 
 				if (!gottaHitNote && PlayStateChangeables.Optimize && !_camsave.data.modcharts)
 					continue;
@@ -1981,8 +1989,8 @@ class PlayState extends MusicBeatState
 				for (susNote in 0...Math.floor(susLength))
 				{
 					oldNote = unspawnNotes[Std.int(unspawnNotes.length - 1)];
-
-					var sustainNote:Note = new Note(daStrumTime + (Conductor.stepCrochet * susNote) + Conductor.stepCrochet, daNoteData, oldNote, true, null, false);
+					var sussy = daStrumTime + (Conductor.stepCrochet * susNote) + Conductor.stepCrochet;
+					var sustainNote:Note = new Note(daStrumTime + (Conductor.stepCrochet * susNote) + Conductor.stepCrochet, daNoteData, oldNote, true, null, false, getPosFromTime(sussy));
 					sustainNote.scrollFactor.set();
 					unspawnNotes.push(sustainNote);
 
@@ -2023,6 +2031,19 @@ class PlayState extends MusicBeatState
 	{
 		return FlxSort.byValues(FlxSort.ASCENDING, Obj1.strumTime, Obj2.strumTime);
 	}
+
+	function mapVelocityChanges(){
+		if(SONG.sliderVelocities.length==0)
+			return;
+
+		var pos:Float = SONG.sliderVelocities[0].startTime*(SONG.initialSpeed);
+		velocityMarkers.push(pos);
+		for(i in 1...SONG.sliderVelocities.length){
+			trace(SONG.sliderVelocities[i],SONG.sliderVelocities[i-1],i-1,i);
+			pos+=(SONG.sliderVelocities[i].startTime-SONG.sliderVelocities[i-1].startTime)*(SONG.initialSpeed*SONG.sliderVelocities[i-1].multiplier);
+			velocityMarkers.push(pos);
+		}
+	};
 
 	private function generateStaticArrows(player:Int):Void
 	{
@@ -2349,6 +2370,52 @@ class PlayState extends MusicBeatState
 
 	public var stopUpdate = false;
 	public var removedVideo = false;
+
+	function getPosFromTime(strumTime:Float):Float{
+		var idx:Int = 0;
+		while(idx<SONG.sliderVelocities.length){
+			if(strumTime<SONG.sliderVelocities[idx].startTime)
+				break;
+			idx++;
+		}
+		return getPosFromTimeSV(strumTime,idx);
+	}
+
+	public static function getSVFromTime(strumTime:Float):Float{
+		var idx:Int = 0;
+		while(idx<SONG.sliderVelocities.length){
+			if(strumTime<SONG.sliderVelocities[idx].startTime)
+				break;
+			idx++;
+		}
+		idx--;
+		if(idx<=0)
+			return SONG.initialSpeed;
+		return SONG.initialSpeed*SONG.sliderVelocities[idx].multiplier;
+	}
+
+	function getPosFromTimeSV(strumTime:Float,?svIdx:Int=0):Float{
+		if(svIdx==0)
+			return strumTime*SONG.initialSpeed;
+
+		svIdx--;
+		var curPos = velocityMarkers[svIdx];
+		curPos += ((strumTime-SONG.sliderVelocities[svIdx].startTime)*(SONG.initialSpeed*SONG.sliderVelocities[svIdx].multiplier));
+		return curPos;
+	}
+
+	function updatePositions(){
+		currentVisPos = Conductor.songPosition + songOffset;
+		currentTrackPos = getPosFromTime(currentVisPos);
+	}
+
+	function getYPosition(note:Note):Float{
+		var hitPos = playerStrums.members[note.noteData];
+		if(!note.mustPress){
+			hitPos = cpuStrums.members[note.noteData];
+		}
+		return hitPos.y + ((note.initialPos-currentTrackPos) * PlayStateChangeables.scrollSpeed);
+	}
 
 	override public function update(elapsed:Float)
 	{
