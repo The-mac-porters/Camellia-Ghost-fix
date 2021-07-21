@@ -523,11 +523,12 @@ class ModchartState
 				Lua_helper.add_callback(lua,"getCameraY", function () {
 					return FlxG.camera.y;
 				});
-	
-				Lua_helper.add_callback(lua,"setCamZoom", function(zoomAmount:Float) {
-					FlxG.camera.zoom = zoomAmount;
-				});
-	
+				if (_camsave.data.cambump)
+				{
+					Lua_helper.add_callback(lua,"setCamZoom", function(zoomAmount:Float) {
+						FlxG.camera.zoom = zoomAmount;
+					});
+				};
 				Lua_helper.add_callback(lua,"setHudZoom", function(zoomAmount:Float) {
 					PlayState.instance.camHUD.zoom = zoomAmount;
 				});

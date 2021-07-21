@@ -33,11 +33,16 @@ class OptionsMenu extends MusicBeatState
 			new HealthDrain("Drains health in C-Mode")
 			// new DamageMode("Adds a chance for damage notes to appear. It's random! CURRENTLY IN TESTING, you have been warned!")
 		]),
+		#if windows
+		new OptionCategory("Modcharts", [
+			new Modcharts("Throw special effects in the mix! !!SEIZURE WARNING!!"),
+			new ShowCharacters("Show Characters while in Optimisation Mode!"),
+			new Optimization("Removes Backgrounds to lessen lag. Works with Modcharts!"),
+			new CameraBumping("Enable the camera bumping in modcharts!")
+		]),
+		#end
 		new OptionCategory("Custom Features",[
 			new HitNoise("Plays the hit noise from other 4 key games"),
-			#if windows
-			new Modcharts("Throw special effects in the mix! !!SEIZURE WARNING!!"),
-			#end
 			new Vocals("Toggle the vocals playing on songs.")
 		]),
 		new OptionCategory("Gameplay", [

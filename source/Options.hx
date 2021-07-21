@@ -746,6 +746,48 @@ class Modcharts extends Option
 	}
 }
 
+class ShowCharacters extends Option
+{
+	public function new(desc:String)
+	{
+		super();
+		description = desc;
+	}
+	public override function press():Bool
+	{
+		_camsave.data.characters = !_camsave.data.characters;
+		_camsave.flush();
+		display = updateDisplay();
+		return true;
+	}
+
+	private override function updateDisplay():String
+	{
+		return "Show Characters " + (_camsave.data.characters ? "on" : "off");
+	}
+}
+
+class CameraBumping extends Option
+{
+	public function new(desc:String)
+	{
+		super();
+		description = desc;
+	}
+	public override function press():Bool
+	{
+		_camsave.data.cambump = !_camsave.data.cambump;
+		_camsave.flush();
+		display = updateDisplay();
+		return true;
+	}
+
+	private override function updateDisplay():String
+	{
+		return "Camera Bumping " + (_camsave.data.cambump ? "on" : "off");
+	}
+}
+
 class DamageMode extends Option
 {
 	public function new(desc:String)
